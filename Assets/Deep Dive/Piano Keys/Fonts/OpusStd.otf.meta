@@ -1,0 +1,21 @@
+fileFormatVersion: 2
+guid: 3f7997acb25f89549b03de7695299b3b
+timeCreated: 1466885779
+licenseType: Free
+TrueTypeFontImporter:
+  serializedVersion: 4
+  fontSize: 50
+  forceTextureCase: 3
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: Opus Std
+  fontNames:
+  - Opus Std
+  fallbackFontReferences: []
+  customCharacters: "nb#mTcCUB\uF0CE\uF0B3\uF057\uF0C5\uF0DCxwv\"%^*> "
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
