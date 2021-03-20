@@ -6,4 +6,6 @@ Cruel Piano Keys
 Festive Piano Keys
 Letter Keys
 Piano Keys
+Semaphore
+Switches
 Word Scramble

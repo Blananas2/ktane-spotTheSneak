@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using KModkit;
 
-public class spotTheSneakScript : MonoBehaviour {
+public class spotTheSneakScript : MonoBehaviour { //I changed the name halfway through the development, deal with it.
 
     public KMBombInfo Bomb;
     public KMAudio Audio;
@@ -17,15 +17,17 @@ public class spotTheSneakScript : MonoBehaviour {
     public TextMesh[] Texts;
     public GameObject[] Changeables;
     public GameObject StatusLight;
+    //public KMRuleSeedable RuleSeedable; //This is just so that I can change a quirk in the event ruleseed is enabled.
 
     public Material[] Mats;
 
-    private List<string> fakeModList = new List<string> { "Letter Keys", "Bitmaps", "Colour Flash", "Piano Keys", "Cruel Piano Keys", "Festive Piano Keys", "Anagrams", "Word Scramble" };
+    private List<string> fakeModList = new List<string> { "Letter Keys", "Bitmaps", "Colour Flash", "Piano Keys", "Cruel Piano Keys", "Festive Piano Keys", "Anagrams", "Word Scramble", "Semaphore", "Switches" };
     private int chosenModule = -1;
     private int chosenChange = -1;
     private List<int> chosenMultichange = new List<int> { };
 
     private int RNG = 0;
+    private int attempts = 1;
 
     //Logging
     static int moduleIdCounter = 1;
@@ -57,9 +59,9 @@ public class spotTheSneakScript : MonoBehaviour {
             FakeModules[i].gameObject.SetActive(false);
         }
         chosenModule = UnityEngine.Random.Range(0, FakeModules.Count());
-        chosenModule = 7; //used for forcing a certain module to appear; comment this out when released.
+        //chosenModule = 9; //used for forcing a certain module to appear; comment this out when released.
         FakeModules[chosenModule].gameObject.SetActive(true);
-        Debug.LogFormat("[Spot the Sneak #{0}] I may look like {1}, but do not be fooled...", moduleId, fakeModList[chosenModule]);
+        Debug.LogFormat("[The Impostor #{0}] I may look like {1}, but do not be fooled...", moduleId, fakeModList[chosenModule]);
 
         switch (fakeModList[chosenModule]) {
             case "Bitmaps": FakeBitmaps(); break;
@@ -70,12 +72,14 @@ public class spotTheSneakScript : MonoBehaviour {
             case "Festive Piano Keys": FakeFestivePianoKeys(); break;
             case "Anagrams": FakeAnagrams(); break;
             case "Word Scramble": FakeWordScramble(); break;
+            case "Semaphore": FakeSemaphore(); break;
+            case "Switches": FakeSwitches(); break;
             default:
-                Debug.LogFormat("[Spot the Sneak #{0}] Couldn't decide what module to be. This is a bug, please tell Blananas2 immediately.", moduleId);
-                GetComponent<KMBombModule>().HandlePass();
+                Debug.LogFormat("[The Impostor #{0}] BUG: switch statement in Start() could not find the fake module method associated with the chosen fake module.", moduleId);
                 break;
         }
 
+        Debug.LogFormat("<The Impostor #{0}> Attempts: {1}", moduleId, attempts);
         StartCoroutine(Laugh());
     }
 
@@ -93,14 +97,14 @@ public class spotTheSneakScript : MonoBehaviour {
 
     void Release () {
         StopCoroutine(someHold);
-        if (holding == true) {
-            Debug.LogFormat("[Spot the Sneak #{0}] You correctly identified that I'm Spot the Sneak, module solved.", moduleId);
+        if (holding) {
+            Debug.LogFormat("[The Impostor #{0}] You correctly identified that I'm The Impostor, module solved.", moduleId);
             Audio.PlaySoundAtTransform("fuck", transform);
             FakeModules[chosenModule].gameObject.SetActive(false);
             SpotTheSneak.gameObject.SetActive(true);
             GetComponent<KMBombModule>().HandlePass();
         } else {
-            Debug.LogFormat("[Spot the Sneak #{0}] You weren't able to identify that I'm Spot the Sneak. Flashing change...", moduleId);
+            Debug.LogFormat("[The Impostor #{0}] You weren't able to identify that I'm The Impostor. Flashing change...", moduleId);
             if (!(Bomb.GetSolvableModuleNames().Contains("Organization"))) { //If an Org is on the bomb, don't give the strike, as Org will likely strike anyway upon solve.
                 GetComponent<KMBombModule>().HandleStrike();
             }
@@ -124,6 +128,7 @@ public class spotTheSneakScript : MonoBehaviour {
     IEnumerator Laugh() {
         yield return new WaitForSeconds((float) 15 + (RNG % 1500)/100);
         Audio.PlaySoundAtTransform("hello", transform);
+        Debug.LogFormat("<The Impostor #{0}> Laugh occured.", moduleId);
     }
 
     IEnumerator Flicker()
@@ -139,7 +144,7 @@ public class spotTheSneakScript : MonoBehaviour {
         FakeModules[chosenModule].gameObject.SetActive(false);
         SpotTheSneak.gameObject.SetActive(true);
         GetComponent<KMBombModule>().HandlePass();
-        Debug.LogFormat("[Spot the Sneak #{0}] Module solved.", moduleId);
+        Debug.LogFormat("[The Impostor #{0}] Module solved.", moduleId);
     }
 
     IEnumerator FlickerMore()
@@ -155,13 +160,13 @@ public class spotTheSneakScript : MonoBehaviour {
         FakeModules[chosenModule].gameObject.SetActive(false);
         SpotTheSneak.gameObject.SetActive(true);
         GetComponent<KMBombModule>().HandlePass();
-        Debug.LogFormat("[Spot the Sneak #{0}] Module solved.", moduleId);
+        Debug.LogFormat("[The Impostor #{0}] Module solved.", moduleId);
     }
 
     //////////Actual fake module methods start here
 
-    void FakeAnagrams() { //Selectables 46-53, Texts 15-24, Changables 14-23
-        StatusLight.transform.localPosition = new Vector3(-0.075167f, 0.01986f, 0.076057f);
+    void FakeAnagrams() { //Selectables 46-53, Texts 15-24, Changeables 14-23
+        StatusLight.transform.localPosition = new Vector3(-0.075167f, 0.01986f, 0.076057f); //top left
 
         string[] anagrams = {"STREAM", "MASTER", "TAMERS", "LOOPED", "POODLE", "POOLED", "CELLAR", "CALLER", "RECALL", "SEATED", "SEDATE", "TEASED", "RESCUE", "SECURE", "RECUSE", "RASHES", "SHEARS", "SHARES", "BARELY", "BARLEY", "BLEARY", "DUSTER", "RUSTED", "RUDEST"};
         string[] wordscramble = {"ARCHER", "ATTACK", "BANANA", "BLASTS", "BURSTS", "BUTTON", "CANNON", "CASING", "CHARGE", "DAMAGE", "DEFUSE", "DEVICE", "DISARM", "FLAMES", "KABOOM", "KEVLAR", "KEYPAD", "LETTER", "MODULE", "MORTAR", "NAPALM", "OTTAWA", "PERSON", "ROBOTS", "ROCKET", "SAPPER", "SEMTEX", "WEAPON", "WIDGET", "WIRING" };
@@ -181,7 +186,7 @@ public class spotTheSneakScript : MonoBehaviour {
                 for (int i = 0; i < 6; i++) {
                     Texts[15+i].text = chosenWS[0+i].ToString();
                 }
-                Debug.LogFormat("[Spot the Sneak #{0}] ...there's a scrambled word on the screen, that doesn't seem normal.", moduleId);
+                Debug.LogFormat("[The Impostor #{0}] ...there's a scrambled word on the screen, that doesn't seem normal.", moduleId);
                 chosenMultichange.Add(22); chosenMultichange.Add(15); chosenMultichange.Add(16); chosenMultichange.Add(17); chosenMultichange.Add(18); chosenMultichange.Add(19); chosenMultichange.Add(14);
             break;
             case 1: //DEL & ENT on wrong side
@@ -191,7 +196,7 @@ public class spotTheSneakScript : MonoBehaviour {
                 for (int i = 0; i < 6; i++) {
                     Texts[jank[i]].text = chosenA[i].ToString();
                 }
-                Debug.LogFormat("[Spot the Sneak #{0}] ...DEL and OK are on the left, that doesn't seem normal.", moduleId);
+                Debug.LogFormat("[The Impostor #{0}] ...DEL and OK are on the left, that doesn't seem normal.", moduleId);
                 chosenMultichange.Add(15); chosenMultichange.Add(16); chosenMultichange.Add(17); chosenMultichange.Add(18); chosenMultichange.Add(19); chosenMultichange.Add(14); chosenMultichange.Add(20); chosenMultichange.Add(21);
             break;
             case 2: //Bottom screen has text instead of top
@@ -200,12 +205,8 @@ public class spotTheSneakScript : MonoBehaviour {
                 for (int i = 0; i < 6; i++) {
                     Texts[15+i].text = chosenA[0+i].ToString();
                 }
-                Debug.LogFormat("[Spot the Sneak #{0}] ...the anagram is on the bottom screen, that doesn't seem normal.", moduleId);
+                Debug.LogFormat("[The Impostor #{0}] ...the anagram is on the bottom screen, that doesn't seem normal.", moduleId);
                 chosenMultichange.Add(23);
-            break;
-            default:
-                Debug.LogFormat("[Spot the Sneak #{0}] Couldn't decide what to change. This is a bug, please tell Blananas2 immediately.", moduleId);
-                GetComponent<KMBombModule>().HandlePass();
             break;
         }
     }
@@ -224,32 +225,28 @@ public class spotTheSneakScript : MonoBehaviour {
             chosenChange = (RNG%4)+5;
             Texts[(RNG%4)+5].text = changeTo.ToString();
             string[] positions = {"1st", "2nd", "3rd", "4th"};
-            Debug.LogFormat("[Spot the Sneak #{0}] ...the {1} button is {2}, that doesn't seem normal.", moduleId, positions[(RNG%4)], changeTo);
+            Debug.LogFormat("[The Impostor #{0}] ...the {1} button is {2}, that doesn't seem normal.", moduleId, positions[(RNG%4)], changeTo);
         } else {
             switch (RNG%4) {
                 case 0:
                     chosenMultichange.Add(5); chosenMultichange.Add(6);
                     Texts[5].text = " 2 "; Texts[6].text = " 1 ";
-                    Debug.LogFormat("[Spot the Sneak #{0}] ...the '1' and '2' have swapped, that doesn't seem normal.", moduleId);
+                    Debug.LogFormat("[The Impostor #{0}] ...the '1' and '2' have swapped, that doesn't seem normal.", moduleId);
                 break;
                 case 1:
                     chosenMultichange.Add(6); chosenMultichange.Add(7);
                     Texts[6].text = " 3 "; Texts[7].text = " 2 ";
-                    Debug.LogFormat("[Spot the Sneak #{0}] ...the '2' and '3' have swapped, that doesn't seem normal.", moduleId);
+                    Debug.LogFormat("[The Impostor #{0}] ...the '2' and '3' have swapped, that doesn't seem normal.", moduleId);
                 break;
                 case 2:
                     chosenMultichange.Add(7); chosenMultichange.Add(8);
                     Texts[7].text = " 4 "; Texts[8].text = " 3 ";
-                    Debug.LogFormat("[Spot the Sneak #{0}] ...the '3' and '4' have swapped, that doesn't seem normal.", moduleId);
+                    Debug.LogFormat("[The Impostor #{0}] ...the '3' and '4' have swapped, that doesn't seem normal.", moduleId);
                 break;
                 case 3:
                     chosenMultichange.Add(5); chosenMultichange.Add(6); chosenMultichange.Add(7); chosenMultichange.Add(8);
                     Texts[5].text = " 4 "; Texts[6].text = " 3 "; Texts[7].text = " 2 "; Texts[8].text = " 1 ";
-                    Debug.LogFormat("[Spot the Sneak #{0}] ...the numbers at the bottom are in reverse order, that doesn't seem normal.", moduleId);
-                break;
-                default:
-                    Debug.LogFormat("[Spot the Sneak #{0}] Couldn't decide what to change. This is a bug, please tell Blananas2 immediately.", moduleId);
-                    GetComponent<KMBombModule>().HandlePass();
+                    Debug.LogFormat("[The Impostor #{0}] ...the numbers at the bottom are in reverse order, that doesn't seem normal.", moduleId);
                 break;
             }
         }
@@ -263,22 +260,18 @@ public class spotTheSneakScript : MonoBehaviour {
             case 0:
                 Texts[10].text = fakeYes[number];
                 chosenChange = 9;
-                Debug.LogFormat("[Spot the Sneak #{0}] ...the left button says {1}, that doesn't seem normal.", moduleId, fakeYes[number]);
+                Debug.LogFormat("[The Impostor #{0}] ...the left button says {1}, that doesn't seem normal.", moduleId, fakeYes[number]);
             break;
             case 1:
                 Texts[11].text = fakeNo[number];
                 chosenChange = 10;
-                Debug.LogFormat("[Spot the Sneak #{0}] ...the right button says {1}, that doesn't seem normal.", moduleId, fakeNo[number]);
+                Debug.LogFormat("[The Impostor #{0}] ...the right button says {1}, that doesn't seem normal.", moduleId, fakeNo[number]);
             break;
             case 2:
                 Texts[10].text = "NO";
                 Texts[11].text = "YES";
                 chosenMultichange.Add(9); chosenMultichange.Add(10);
-                Debug.LogFormat("[Spot the Sneak #{0}] ...the 'YES' and 'NO' buttons have swapped, that doesn't seem normal.", moduleId, fakeNo[number]);
-            break;
-            default:
-                Debug.LogFormat("[Spot the Sneak #{0}] Couldn't decide what to change. This is a bug, please tell Blananas2 immediately.", moduleId);
-                GetComponent<KMBombModule>().HandlePass();
+                Debug.LogFormat("[The Impostor #{0}] ...the 'YES' and 'NO' buttons have swapped, that doesn't seem normal.", moduleId, fakeNo[number]);
             break;
         }
         ///// ^ ABOVE ^ is quirk, v BELOW v is color cycling function
@@ -297,7 +290,7 @@ public class spotTheSneakScript : MonoBehaviour {
             wordSeq.Add(colors[UnityEngine.Random.Range(0,6)]);
             colSeq.Add(UnityEngine.Random.Range(0,6));
         }
-        StartOver:
+        CFcycle:
         for (int j = 0; j < 8; j++) {
             Texts[9].text = wordSeq[j];
             Texts[9].color = new Color(fcolors[3*colSeq[j]], fcolors[3*colSeq[j]+1], fcolors[3*colSeq[j]+2]);
@@ -305,7 +298,7 @@ public class spotTheSneakScript : MonoBehaviour {
         }
         Texts[9].text = "";
         yield return new WaitForSeconds(2f);
-        goto StartOver;
+        goto CFcycle;
         yield return null;
     }
 
@@ -313,40 +306,54 @@ public class spotTheSneakScript : MonoBehaviour {
         chosenChange = 12;
         string set = "nb#mTcCUB";
         List<string> symbols = new List<string> {};
+        CPKretry:
         for (int i = 0; i < 4; i++) {
             symbols.Add(set.PickRandom().ToString());
         }
         //01 02 03 12 13 23
         if ((symbols[0] == symbols[1]) || (symbols[0] == symbols[2]) || (symbols[0] == symbols[3])
         || (symbols[1] == symbols[2]) || (symbols[1] == symbols[3]) || (symbols[2] == symbols[3])) { //had to split this line bc atom got angry
-            Debug.LogFormat("[Spot the Sneak #{0}] ...the display has identical symbols, that doesn't seem normal.", moduleId);
+            Debug.LogFormat("[The Impostor #{0}] ...the display has identical symbols, that doesn't seem normal.", moduleId);
         } else {
+            symbols.Clear();
+            attempts += 1;
+            goto CPKretry;
+            //This code was for including a symbol which would not normally appear on CPK, but that's extremely brutal and I'd rather not have a clarification in the manual.
+            /*
             string dummys = "\"%*>^_vwx"; //Sadly I can only use symbols here that are in either Normal or Festive. :(
             symbols.Add(dummys.PickRandom().ToString());
             symbols[RNG%4] = symbols[4];
-            Debug.LogFormat("[Spot the Sneak #{0}] ...the display has a strange symbol ({1}), that doesn't seem normal.", moduleId, PianoSymbol(symbols[4]));
+            Debug.LogFormat("[The Impostor #{0}] ...the display has a strange symbol ({1}), that doesn't seem normal.", moduleId, PianoSymbol(symbols[4]));
+            */
         }
         Texts[13].text = symbols[0] + "  " + symbols[1] + "  " + symbols[2] + "  " + symbols[3];
-        Debug.LogFormat("[Spot the Sneak #{0}] Symbols: {1}, {2}, {3}, {4}", moduleId, PianoSymbol(symbols[0]), PianoSymbol(symbols[1]), PianoSymbol(symbols[2]), PianoSymbol(symbols[3]));
+        Debug.LogFormat("[The Impostor #{0}] Symbols: {1}, {2}, {3}, {4}", moduleId, PianoSymbol(symbols[0]), PianoSymbol(symbols[1]), PianoSymbol(symbols[2]), PianoSymbol(symbols[3]));
     }
 
     void FakeFestivePianoKeys() { //Selectables 34-45, Text 14, Changable 13
         chosenChange = 13;
         string set = "mB\"%x*v^w>";
         List<string> symbols = new List<string> {};
+        FPKretry:
         for (int i = 0; i < 3; i++) {
             symbols.Add(set.PickRandom().ToString());
         }
         if ((symbols[0] == symbols[1]) || (symbols[0] == symbols[2]) || (symbols[1] == symbols[2])) {
-            Debug.LogFormat("[Spot the Sneak #{0}] ...the display has identical symbols, that doesn't seem normal.", moduleId);
+            Debug.LogFormat("[The Impostor #{0}] ...the display has identical symbols, that doesn't seem normal.", moduleId);
         } else {
+            symbols.Clear();
+            attempts += 1;
+            goto FPKretry;
+            //This code was for including a symbol which would not normally appear on FPK, but that's extremely brutal and I'd rather not have a clarification in the manual.
+            /*
             string dummys = "nb#TcCU"; //Sadly I can only use symbols here that are in either Cruel or Normal. :(
             symbols.Add(dummys.PickRandom().ToString());
             symbols[RNG%3] = symbols[3];
-            Debug.LogFormat("[Spot the Sneak #{0}] ...the display has a strange symbol ({1}), that doesn't seem normal.", moduleId, PianoSymbol(symbols[3]));
+            Debug.LogFormat("[The Impostor #{0}] ...the display has a strange symbol ({1}), that doesn't seem normal.", moduleId, PianoSymbol(symbols[3]));
+            */
         }
         Texts[14].text = symbols[0] + "  " + symbols[1] + "  " + symbols[2];
-        Debug.LogFormat("[Spot the Sneak #{0}] Symbols: {1}, {2}, {3}", moduleId, PianoSymbol(symbols[0]), PianoSymbol(symbols[1]), PianoSymbol(symbols[2]));
+        Debug.LogFormat("[The Impostor #{0}] Symbols: {1}, {2}, {3}", moduleId, PianoSymbol(symbols[0]), PianoSymbol(symbols[1]), PianoSymbol(symbols[2]));
     }
 
     void FakeLetterKeys() { //Selectables 0-3, Texts 0-4, Changeables 0-4
@@ -371,7 +378,7 @@ public class spotTheSneakScript : MonoBehaviour {
                     Texts[0].text = letter.ToString();
                 }
             }
-            Debug.LogFormat("[Spot the Sneak #{0}] ...the number on the display is {1}, that doesn't seem normal.", moduleId, Texts[0].text);
+            Debug.LogFormat("[The Impostor #{0}] ...the number on the display is {1}, that doesn't seem normal.", moduleId, Texts[0].text);
         } else {
             chosenChange = RNG%5;
             string avoid = Texts[RNG%5].text.ToString();
@@ -381,7 +388,7 @@ public class spotTheSneakScript : MonoBehaviour {
             }
             Texts[RNG%5].text = changeTo.ToString();
             string[] places = {"top-left", "top-right", "bottom-left", "bottom-right"};
-            Debug.LogFormat("[Spot the Sneak #{0}] ...the {1} button is {2}, that doesn't seem normal.", moduleId, places[(RNG%5)-1], changeTo);
+            Debug.LogFormat("[The Impostor #{0}] ...the {1} button is {2}, that doesn't seem normal.", moduleId, places[(RNG%5)-1], changeTo);
         }
     }
 
@@ -389,22 +396,95 @@ public class spotTheSneakScript : MonoBehaviour {
         chosenChange = 11;
         string set = "nb#mTcCUB";
         List<string> symbols = new List<string> {};
+        PKretry:
         for (int i = 0; i < 3; i++) {
             symbols.Add(set.PickRandom().ToString());
         }
         if ((symbols[0] == symbols[1]) || (symbols[0] == symbols[2]) || (symbols[1] == symbols[2])) {
-            Debug.LogFormat("[Spot the Sneak #{0}] ...the display has identical symbols, that doesn't seem normal.", moduleId);
+            Debug.LogFormat("[The Impostor #{0}] ...the display has identical symbols, that doesn't seem normal.", moduleId);
         } else {
+            symbols.Clear();
+            attempts += 1;
+            goto PKretry;
+            //This code was for including a symbol which would not normally appear on PK, but that's extremely brutal and I'd rather not have a clarification in the manual.
+            /*
             string dummys = "\"%*>^_vwx"; //Sadly I can only use symbols here that are in either Cruel or Festive. :(
             symbols.Add(dummys.PickRandom().ToString());
             symbols[RNG%3] = symbols[3];
-            Debug.LogFormat("[Spot the Sneak #{0}] ...the display has a strange symbol ({1}), that doesn't seem normal.", moduleId, PianoSymbol(symbols[3]));
+            Debug.LogFormat("[The Impostor #{0}] ...the display has a strange symbol ({1}), that doesn't seem normal.", moduleId, PianoSymbol(symbols[3]));
+            */
         }
         Texts[12].text = symbols[0] + "  " + symbols[1] + "  " + symbols[2];
-        Debug.LogFormat("[Spot the Sneak #{0}] Symbols: {1}, {2}, {3}", moduleId, PianoSymbol(symbols[0]), PianoSymbol(symbols[1]), PianoSymbol(symbols[2]));
+        Debug.LogFormat("[The Impostor #{0}] Symbols: {1}, {2}, {3}", moduleId, PianoSymbol(symbols[0]), PianoSymbol(symbols[1]), PianoSymbol(symbols[2]));
     }
 
-    void FakeWordScramble() { //Selectables 54-61, Text 25-34, Changables 24-33
+    void FakeSemaphore() { //Texts 35-37, Changeables 34-38
+        string[] dummies = {"K", "KO", " "};
+        int left = UnityEngine.Random.Range(0, 8);
+        int right = UnityEngine.Random.Range(0, 8);
+        while (left == 0 && (right == 1 || right == 2)) {
+            left = UnityEngine.Random.Range(0, 8);
+            right = UnityEngine.Random.Range(0, 8);
+        }
+        switch (RNG%2) {
+            case 0: //ok
+            string chosen = dummies.PickRandom().ToString();
+                Texts[37].text = chosen;
+                chosenChange = 38;
+                Changeables[34].transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
+                Changeables[35].transform.localRotation = Quaternion.Euler(0f, 0f, ((RNG%2==0) ? -45f : -90f));
+                Debug.LogFormat("[The Impostor #{0}] ...the square buttons says \"{1}\", that doesn't seem normal.", moduleId, chosen);
+            break;
+            case 1: //left&right swap
+                Texts[35].text = ">";
+                Texts[36].text = "<";
+                chosenMultichange.Add(36); chosenMultichange.Add(37);
+                Changeables[34].transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
+                Changeables[35].transform.localRotation = Quaternion.Euler(0f, 0f, ((RNG%2==0) ? -45f : -90f));
+                Debug.LogFormat("[The Impostor #{0}] ...the left and right buttons have swapped, that doesn't seem normal.", moduleId);
+            break;
+            case 2: //flags -- won't be used because this causes FF conflict; technically makes left and right obsolete but oh well
+                chosenMultichange.Add(34); chosenMultichange.Add(35);
+                Changeables[34].transform.localRotation = Quaternion.Euler(0f, 0f, left*45f); //technically speaking, the flags when they're in certain positions should be flipped over but i'm lazy
+                Changeables[35].transform.localRotation = Quaternion.Euler(0f, 0f, right*-45f);
+                Debug.LogFormat("[The Impostor #{0}] ...the flags are {1}, that doesn't seem normal.", moduleId, SemaFlags(left, right));
+            break;
+        }
+    }
+
+    void FakeSwitches() { //39-53
+        string[] invalids = {"00100", "01011", "01111", "10010", "10011", "10111", "11000", "11010", "11100", "11110"};
+        string chosenOne = invalids.PickRandom();
+        if (RNG%2 == 0) {
+            for (int i = 39; i < 44; i++) {
+                chosenMultichange.Add(i);
+            }
+            Debug.LogFormat("[The Impostor #{0}] ...the switches are all in the middle, that doesn't seem normal.", moduleId);
+        } else {
+            Debug.LogFormat("[The Impostor #{0}] ...the switches are already in the correct positions ({1}), that doesn't seem normal.", moduleId, chosenOne);
+            for (int j = 0; j < 5; j++) {
+                Changeables[39+j].transform.localRotation = Quaternion.Euler(((chosenOne[j] == '0') ? -50f : 50f), 0f, 0f);
+            }
+            for (int i = 39; i < 54; i++) {
+                chosenMultichange.Add(i);
+            }
+        }
+        for (int k = 0; k < 5; k++) {
+            Changeables[44+(2*k)].GetComponent<MeshRenderer>().material = Mats[((chosenOne[k] == '0') ? 1 : 2)];
+            Changeables[45+(2*k)].GetComponent<MeshRenderer>().material = Mats[((chosenOne[k] == '1') ? 1 : 2)];
+        }
+        /* //This put a bad taste in my mouth honestly, I do not see where the problem could possibly lie. So ruleseed will not be supported.
+        if (RuleSeedable.GetRNG() == 1) {
+            string chosenTwo = invalids.PickRandom();
+            while (chosenTwo == chosenOne) {
+                chosenTwo = invalids.PickRandom();
+            }
+            Debug.LogFormat("[The Impostor #{0}] ...the switches ({1}) and LEDs ({2}) are in invalid positions, that doesn't seem normal.", moduleId, chosenOne, chosenTwo);
+        } else {
+        */
+    }
+
+    void FakeWordScramble() { //Selectables 54-61, Text 25-34, Changeables 24-33
         string[] anagrams = {"STREAM", "MASTER", "TAMERS", "LOOPED", "POODLE", "POOLED", "CELLAR", "CALLER", "RECALL", "SEATED", "SEDATE", "TEASED", "RESCUE", "SECURE", "RECUSE", "RASHES", "SHEARS", "SHARES", "BARELY", "BARLEY", "BLEARY", "DUSTER", "RUSTED", "RUDEST"};
         string[] wordscramble = {"ARCHER", "ATTACK", "BANANA", "BLASTS", "BURSTS", "BUTTON", "CANNON", "CASING", "CHARGE", "DAMAGE", "DEFUSE", "DEVICE", "DISARM", "FLAMES", "KABOOM", "KEVLAR", "KEYPAD", "LETTER", "MODULE", "MORTAR", "NAPALM", "OTTAWA", "PERSON", "ROBOTS", "ROCKET", "SAPPER", "SEMTEX", "WEAPON", "WIDGET", "WIRING" };
         string chosenA = anagrams.PickRandom();
@@ -423,7 +503,7 @@ public class spotTheSneakScript : MonoBehaviour {
                 for (int i = 0; i < 6; i++) {
                     Texts[25+i].text = chosenA[0+i].ToString();
                 }
-                Debug.LogFormat("[Spot the Sneak #{0}] ...there's an anagram on the screen, that doesn't seem normal.", moduleId);
+                Debug.LogFormat("[The Impostor #{0}] ...there's an anagram on the screen, that doesn't seem normal.", moduleId);
                 chosenMultichange.Add(32); chosenMultichange.Add(25); chosenMultichange.Add(26); chosenMultichange.Add(27); chosenMultichange.Add(28); chosenMultichange.Add(29); chosenMultichange.Add(24);
             break;
             case 1: //DEL & ENT on wrong side
@@ -433,7 +513,7 @@ public class spotTheSneakScript : MonoBehaviour {
                 for (int i = 0; i < 6; i++) {
                     Texts[jank[i]].text = chosenWS[i].ToString();
                 }
-                Debug.LogFormat("[Spot the Sneak #{0}] ...DEL and OK are on the left, that doesn't seem normal.", moduleId);
+                Debug.LogFormat("[The Impostor #{0}] ...DEL and OK are on the left, that doesn't seem normal.", moduleId);
                 chosenMultichange.Add(25); chosenMultichange.Add(26); chosenMultichange.Add(27); chosenMultichange.Add(28); chosenMultichange.Add(29); chosenMultichange.Add(24); chosenMultichange.Add(30); chosenMultichange.Add(31);
             break;
             case 2: //Bottom screen has text instead of top
@@ -442,12 +522,8 @@ public class spotTheSneakScript : MonoBehaviour {
                 for (int i = 0; i < 6; i++) {
                     Texts[25+i].text = chosenWS[0+i].ToString();
                 }
-                Debug.LogFormat("[Spot the Sneak #{0}] ...the scrambled word is on the bottom screen, that doesn't seem normal.", moduleId);
+                Debug.LogFormat("[The Impostor #{0}] ...the scrambled word is on the bottom screen, that doesn't seem normal.", moduleId);
                 chosenMultichange.Add(33);
-            break;
-            default:
-                Debug.LogFormat("[Spot the Sneak #{0}] Couldn't decide what to change. This is a bug, please tell Blananas2 immediately.", moduleId);
-                GetComponent<KMBombModule>().HandlePass();
             break;
         }
     }
@@ -478,8 +554,14 @@ public class spotTheSneakScript : MonoBehaviour {
             case "^": return "Marcato"; break;
             case "*": return "Pedal Up"; break;
             case ">": return "Accent"; break;
-            default: return null; break;
+            default: return "BUG in PianoSymbol() method"; break;
         }
+    }
+
+    string SemaFlags(int l, int r) {
+        string[] sinister = {"N", "NW", "W", "SW", "S", "SE", "E", "NE"};
+        string[] dexter = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
+        return sinister[l] + " and " + dexter[r];
     }
 
 }

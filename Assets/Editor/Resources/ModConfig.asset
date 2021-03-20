@@ -11,10 +11,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 615501dbe4f3fe94fbf4b564abb10237, type: 3}
   m_Name: ModConfig
   m_EditorClassIdentifier: 
-  id: spotTheSneak
-  title: Spot the Sneak
+  id: impostor
+  title: The Impostor
   author: Blananas2
-  description: 'Now you see it... and now you don''t.
+  description: 'Good to see there''s a new module out now! Unfortunately, it seems
+    to be hidden in plain sight.
+
+
+    ID: impostor
 
 
     Thanks to Aero for sound effects.'
